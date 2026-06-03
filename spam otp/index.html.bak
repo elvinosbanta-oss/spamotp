@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Tools - Testing Nomor Sendiri</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        /* Warning Banner */
+        .warning-banner {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.01); } }
+        .warning-icon { font-size: 48px; }
+        .warning-text h2 { font-size: 18px; margin-bottom: 8px; }
+        .warning-text p { font-size: 13px; opacity: 0.95; }
+        .live-badge { background: #ff4757; padding: 5px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin-top: 10px; }
+        
+        /* Card */
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .title {
+            font-size: 32px;
+            font-weight: 800;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 14px; }
+        
+        /* Input */
+        .input-group { margin-bottom: 25px; }
+        .input-group label { font-weight: 600; margin-bottom: 10px; display: block; color: #333; }
+        .phone-wrapper { display: flex; gap: 10px; }
+        .country-select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            font-weight: 600;
+        }
+        .phone-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .phone-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        .input-hint { font-size: 12px; color: #999; margin-top: 8px; }
+        
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 12px;
+        }
+        .info-icon { font-size: 24px; }
+        .info-text { font-size: 13px; color: #555; line-height: 1.6; }
+        
+        /* Buttons */
+        .action-buttons { display: flex; gap: 15px; }
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+        
+        /* Results */
+        .results-section { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+        .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #999; }
+        .close-btn:hover { color: #333; }
+        
+        .result-summary {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .summary-stats { display: flex; gap: 20px; margin-bottom: 15px; }
+        .stat {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            background: white;
+        }
+        .stat.success .stat-value { color: #2ed573; }
+        .stat.failed .stat-value { color: #ff4757; }
+        .stat-value { font-size: 32px; font-weight: 800; }
+        .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+        
+        .result-details-list { max-height: 400px; overflow-y: auto; }
+        .result-details-list h3 { margin-bottom: 15px; color: #333; font-size: 16px; }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .result-item.success { background: #f0fff4; }
+        .result-item.failed { background: #fff5f5; }
+        .service-name { font-weight: 500; font-size: 14px; }
+        .result-message { font-size: 13px; }
+        .result-item.success .result-message { color: #2ed573; }
+        .result-item.failed .result-message { color: #ff4757; }
+        
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-overlay p { color: white; margin-top: 20px; }
+        
+        .footer { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.5); font-size: 12px; }
+        .footer p { margin: 5px 0; }
+        
+        @media (max-width: 640px) {
+            .card { padding: 20px; }
+            .title { font-size: 24px; }
+            .phone-wrapper { flex-direction: column; }
+            .action-buttons { flex-direction: column; }
+            .summary-stats { flex-direction: column; gap: 10px; }
+            .warning-banner { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="warning-banner">
+            <div class="warning-icon">⚠️</div>
+            <div class="warning-text">
+                <h2>HANYA UNTUK NOMOR SENDIRI!</h2>
+                <p>Menggunakan tools ini ke nomor orang lain adalah <strong>TINDAKAN ILEGAL</strong>.<br>
+                Ancaman pidana penjara 6-12 tahun dan denda miliaran rupiah (UU ITE).</p>
+                <div class="live-badge">🔴 LIVE MODE - MENGIRIM REAL</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h1 class="title">📱 OTP Testing Tools</h1>
+            <p class="subtitle">Untuk testing aplikasi di nomor sendiri (31 layanan)</p>
+
+            <div class="input-group">
+                <label>Nomor Telepon (Nomor ANDA sendiri)</label>
+                <div class="phone-wrapper">
+                    <select id="countryCode" class="country-select">
+                        <option value="62">+62 (Indonesia)</option>
+                    </select>
+                    <input type="tel" id="phone" placeholder="8123456789" autocomplete="off" class="phone-input">
+                </div>
+                <div class="input-hint">Contoh: 8123456789 atau 08123456789</div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-icon">ℹ️</div>
+                <div class="info-text">
+                    <strong>Total Layanan:</strong> 31 layanan<br>
+                    <strong>Mode:</strong> <span style="color:#ff4757">LIVE (Mengirim Real ke Nomor Target)</span><br>
+                    <strong>Disclaimer:</strong> Pastikan ini nomor ANDA sendiri!
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="sendBtn" class="btn btn-primary">🚀 MULAI TESTING</button>
+                <button id="clearBtn" class="btn btn-secondary">🗑️ CLEAR</button>
+            </div>
+        </div>
+
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <div class="card">
+                <div class="results-header">
+                    <h2>📊 Hasil Testing</h2>
+                    <button id="closeResults" class="close-btn">&times;</button>
+                </div>
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Mengirim OTP ke 31 layanan...<br><small>Mohon tunggu, proses memakan waktu 1-2 menit</small></p>
+        </div>
+
+        <div class="footer">
+            <p>🔒 Tools ini HANYA untuk nomor sendiri | Testing & Development</p>
+        </div>
+    </div>
+
+    <script>
+        const phoneInput = document.getElementById('phone');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const closeResults = document.getElementById('closeResults');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsContent = document.getElementById('resultsContent');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        let isSending = false;
+
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.startsWith('62')) value = value.slice(2);
+            else if (value.startsWith('0')) value = value.slice(1);
+            if (value.length > 13) value = value.slice(0, 13);
+            e.target.value = value;
+        });
+
+        function getFullPhone() {
+            let phone = phoneInput.value.trim();
+            if (!phone) return '';
+            phone = phone.replace(/\D/g, '');
+            if (!phone.startsWith('62')) {
+                if (phone.startsWith('0')) phone = phone.slice(1);
+                phone = '62' + phone;
+            }
+            return phone;
+        }
+
+        async function sendSpam() {
+            if (isSending) {
+                alert('Masih dalam proses, harap tunggu...');
+                return;
+            }
+
+            const phone = phoneInput.value.trim();
+            if (!phone) {
+                alert('Masukkan nomor telepon');
+                phoneInput.focus();
+                return;
+            }
+
+            const cleanPhone = phone.replace(/\D/g, '');
+            if (cleanPhone.length < 8 || cleanPhone.length > 13) {
+                alert('Nomor telepon harus 8-13 digit');
+                return;
+            }
+
+            const confirmMsg = `⚠️ PERINGATAN ⚠️\n\nAnda akan mengirim OTP ke nomor:\n+${getFullPhone()}\n\nPASTIKAN INI NOMOR ANDA SENDIRI!\n\nLanjutkan?`;
+            if (!confirm(confirmMsg)) return;
+
+            isSending = true;
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '⏳ MENGIRIM...';
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                const response = await fetch('/api/send-spam', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: getFullPhone() })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                    alert(data.message);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                alert('Terjadi kesalahan: ' + error.message);
+            } finally {
+                isSending = false;
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '🚀 MULAI TESTING';
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const successCount = data.success_count;
+            const failCount = data.total - successCount;
+            const successRate = Math.round((successCount / data.total) * 100);
+
+            let html = `
+                <div class="result-summary">
+                    <div class="summary-stats">
+                        <div class="stat success">
+                            <div class="stat-value">${successCount}</div>
+                            <div class="stat-label">Berhasil</div>
+                        </div>
+                        <div class="stat failed">
+                            <div class="stat-value">${failCount}</div>
+                            <div class="stat-label">Gagal</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${successRate}%</div>
+                            <div class="stat-label">Sukses Rate</div>
+                        </div>
+                    </div>
+                    <div class="result-info">
+                        <p><strong>Nomor Target:</strong> +${data.phone}</p>
+                        <p><strong>Waktu:</strong> ${data.timestamp}</p>
+                        <p><strong>Total Layanan:</strong> ${data.total}</p>
+                        <p><strong>Mode:</strong> <span style="color:#ff4757">🔴 LIVE (Mengirim Real)</span></p>
+                    </div>
+                </div>
+                <div class="result-details-list">
+                    <h3>📋 Detail Pengiriman:</h3>
+            `;
+
+            data.results.forEach(result => {
+                const statusIcon = result.success ? '✅' : '❌';
+                const statusText = result.success ? 'BERHASIL' : (result.message || 'GAGAL');
+                html += `
+                    <div class="result-item ${result.success ? 'success' : 'failed'}">
+                        <span class="service-name">${statusIcon} ${result.service}</span>
+                        <span class="result-message">${statusText}</span>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            resultsContent.innerHTML = html;
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function clearForm() {
+            phoneInput.value = '';
+            resultsSection.style.display = 'none';
+            phoneInput.focus();
+        }
+
+        sendBtn.addEventListener('click', sendSpam);
+        clearBtn.addEventListener('click', clearForm);
+        if (closeResults) closeResults.addEventListener('click', () => resultsSection.style.display = 'none');
+    </script>
+</body>
+</html>
